@@ -37,17 +37,7 @@ void Stage::Update(void)
 
 void Stage::Draw(void)
 {
-
-	//for (const auto stagedraw : stagePiece_)
-	//{
-	//	stagedraw.second->Draw();
-	//}
-
 	stagePiece_[STAGE_NUM::S1_1]->Draw();
-	//stagePiece_[STAGE_NUM::S1_2]->Draw();
-	//stagePiece_[STAGE_NUM::S1_3]->Draw();
-	//stagePiece_[STAGE_NUM::S1_4]->Draw();
-
 }
 
 void Stage::Release(void) 

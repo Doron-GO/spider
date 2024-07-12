@@ -166,7 +166,7 @@
     <ClInclude Include="Src\Manager\Resource.h" />
     <ClInclude Include="Src\Manager\ResourceManager.h" />
     <ClInclude Include="Src\Manager\SceneManager.h" />
-    <ClInclude Include="Src\Object\Coin.h" />
+    <ClInclude Include="Src\Object\Character.h" />
     <ClInclude Include="Src\Object\Common\AnimationController.h" />
     <ClInclude Include="Src\Object\Common\Capsule.h" />
     <ClInclude Include="Src\Object\Common\Collider.h" />
@@ -198,7 +198,7 @@
     <ClCompile Include="Src\Manager\Resource.cpp" />
     <ClCompile Include="Src\Manager\ResourceManager.cpp" />
     <ClCompile Include="Src\Manager\SceneManager.cpp" />
-    <ClCompile Include="Src\Object\Coin.cpp" />
+    <ClCompile Include="Src\Object\Character.cpp" />
     <ClCompile Include="Src\Object\Common\AnimationController.cpp" />
     <ClCompile Include="Src\Object\Common\Capsule.cpp" />
     <ClCompile Include="Src\Object\Common\Collider.cpp" />

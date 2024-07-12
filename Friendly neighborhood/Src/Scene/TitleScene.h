@@ -18,17 +18,23 @@ public:
 	void Init(void) override;
 	void Update(void) override;
 	void Draw(void) override;
-	void Release(void) override;
 
 private:
-	int count_;
-	AnimationController* animationController_;	//プレイヤーのアニメーション制御
 
-	// 画像
+	int count_;
+
+	//プレイヤーのアニメーション制御
+	AnimationController* animationController_;	
+
+	// タイトル画像
 	int imgTitle_;
-	int imgTitle_2;
+
+	//スタート画像
+	int imgStart_;
+
+	//Pushしてくれ画像
 	int imgPush_;
-	int p;
+
 	//グリッド線
 	Transform transform_;	//プレイヤーのモデル制御
 

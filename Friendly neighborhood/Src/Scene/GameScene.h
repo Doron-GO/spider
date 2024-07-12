@@ -26,26 +26,30 @@ public:
 private:
 	//ステージ
 	std::unique_ptr<Stage> stage_;
-	AnimationController* animationController_;	//プレイヤーのアニメーション制御
+
+	//プレイヤーのアニメーション制御
+	AnimationController* animationController_;	
 
 	//グリッド線
 	std::unique_ptr<Grid> grid_;
+
 	bool isLoaded_;
 
-	//コインの情報生成
-	void MakeCoin(void);
+	//探すキャラクターの情報生成
+	void MakeCharacter(void);
 
-	//コインとプレイヤーの衝突判定
+	//探すキャラクターとプレイヤーの衝突判定
 	void IsHitCoinPlayer(void);
 
 	std::unique_ptr<SwingPoint> swi_;
 
 	bool isLoaded ;
+
 	//背景
 	std::unique_ptr<SkyDome> skyDome_;
 
-	// コイン
-	std::vector<Coin*> coins_;
+	// 三人の自分の見た目をした人間
+	std::vector<Character*> character_;
 
 	//プレイヤー
 	Player* player_;

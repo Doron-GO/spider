@@ -33,10 +33,6 @@ void SkyDome::Init(void)
 	transform_.quaRotLocal = Quaternion();
 	transform_.Update();
 
-	// Zバッファ無効(突き抜け対策)
-	//MV1SetUseZBuffer(transform_.modelId, false);
-	//MV1SetWriteZBuffer(transform_.modelId, false);
-
 	// 状態遷移
 	if (syncTransform_ == nullptr)
 	{
