@@ -21,21 +21,6 @@ SwingPoint::~SwingPoint()
 void SwingPoint::Draw(void)
 {
 
-	for (auto& section : sectionList_[static_cast<Stage::STAGE_NUM>(0)])
-	{
-		for (auto bulidings : section.second)
-		{
-			for (auto swingPoint : bulidings.second)
-			{			
-				DrawSphere3D(swingPoint, 70.0f, 10, 10, 0xff0000, true);
-			}
-		}
-	}
-	for (auto& bill : BillPpoint_)
-	{
-		VECTOR b = { bill.x,500.0f,bill.z };
-		DrawSphere3D(b, 70.0f, 10, 10, 0x000000, true);
-	}
 }
 
 void SwingPoint::Load(void)
@@ -125,7 +110,7 @@ void SwingPoint::Load(void)
 
 }
 
-const VECTOR SwingPoint::SetSwingPoint(VECTOR pos, int section)
+const VECTOR SwingPoint::SetSwingPoint(VECTOR pos)
 {
 	min = 9999999.0f;
 	distance_.clear();

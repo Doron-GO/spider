@@ -17,7 +17,6 @@
 Player::Player(void) : resourceManager_(ResourceManager::GetInstance())
 {
 	_update = &Player::StandardUpdate;
-	VECTOR gravityDir_ = { 0.0f,-1.0f,0.0f };
 	gMag_ = SWING_GRAVITY; //重力の大きさ
 }
 
@@ -27,7 +26,7 @@ Player::~Player(void)
 
 void Player::Init(void)
 {
-	section_ = 0;
+	//section_ = 0;
 	//モデル情報を格納
 	transform_.SetModel(
 		resourceManager_.LoadModelDuplicate(ResourceManager::SRC::PLAYER));
@@ -47,8 +46,6 @@ void Player::Init(void)
 
 	endPos_ = { 4200.0f,2200.0f,1200.0f };
 
-	sectionPos[0] = 25600.0f;
-	sectionPos[1] = 51071.0f;
 	isSwingFlag_ = false;
 	// アニメーションの設定
 	AnimationInit();
@@ -60,10 +57,9 @@ void Player::Init(void)
 
 }
 
-void Player::Update(float delta, VECTOR dir,VECTOR gra,VECTOR endp, VECTOR Billpos)
+void Player::Update(float delta, VECTOR dir,VECTOR gra,VECTOR endp)
 {	
 	setEndPos_ = endp;
-	billPos_ = Billpos;
 	gravityNorm_ = VNorm(GRAVITY);		//重力の正規化ベクトル
 	swingGravity_ = transform_.GetForward();
 	(this->*_update)(delta);
@@ -72,7 +68,6 @@ void Player::Update(float delta, VECTOR dir,VECTOR gra,VECTOR endp, VECTOR Billp
 	animationController_->Update();
 	transform_.quaRot = Quaternion{ 1.0f,0.0f,0.0f,0.0f };
 	transform_.quaRot = transform_.quaRot.Mult(pendulumRotY_);
-	CheckSection();
 	MV1RefreshCollInfo(transform_.modelId);
 }
 
@@ -98,13 +93,14 @@ void Player::FallUpdate(float delta)
 	auto speed = 4.0f;
 	CalcGravityPow();
 	ProcessJump();
+	ProcessSwingJump();
 	ProcessMove();
 
 	auto& ins = InputManager::GetInstance();
 	bool isHit = ins.IsPadBtnNew(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::RIGHT);
 	if (isHit)
 	{
-		isJump_ = true;
+		isNormalJump_ = true;
 		SetSwingParam(transform_.pos, endPos_);
 	}
 }
@@ -138,9 +134,26 @@ bool Player::SetSwingParam(VECTOR pos ,VECTOR end)
 
 void Player::SwingStart()
 {
-	isJump_ = false;
+	isNormalJump_ = false;
 	SetSwingParam(transform_.pos, endPos_);
 
+}
+
+void Player::ProcessSwingJump(void)
+{
+	if (isSwingJump_)
+	{
+		stepSwingJump_ += SceneManager::GetInstance().GetDeltaTime();
+		if (stepSwingJump_ < TIME_SWING_JUMP)
+		{
+			jumpPow_ = VScale(VECTOR{ 0.0f,1.0f,0.0f }, POW_JUMP);
+		}
+	}
+	if (stepSwingJump_ > TIME_SWING_JUMP)
+	{
+		stepSwingJump_ = 0.0f;
+		isSwingJump_ = false;
+	}
 }
 
 void Player::SetFollowTarget(Camera* target)
@@ -191,9 +204,9 @@ void Player::Swing(float delta)
 	if (ins.IsPadBtnTrgUp(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::RIGHT))
 	{
 		movePow_.y = 0.0f;
-		movePow_.x *= 1.5f;
-		movePow_.z *= 1.5f;
-		isJump_ = true;
+		movePow_.x *= 0.5f;
+		movePow_.z *= 0.5f;
+		isNormalJump_ = true;
 		_update = &Player::FallUpdate;
 		isSwingJump_ = true;
 		isSwingFlag_ = false;
@@ -238,43 +251,11 @@ void Player::SwingDraw(void)
 {
 }
 
-int Player::CheckSection(void)
-{
-	if (transform_.pos.x <= sectionPos[0] && transform_.pos.z <= sectionPos[0])
-	{
-		//19
-		section_ = 1;
-	}
-	if (sectionPos[0]<=transform_.pos.x&&transform_.pos.x <= sectionPos[1] &&
-		transform_.pos.z <= sectionPos[0])
-	{
-		//18
-		section_ = 2;
-	}
-	if (transform_.pos.x <= sectionPos[0] &&
-		sectionPos[0]<=transform_.pos.z&&transform_.pos.z <= sectionPos[1])
-	{
-		//14
-		section_ = 2;
-	}
-	if (sectionPos[0]<=transform_.pos.x&&transform_.pos.x <= sectionPos[1] &&
-		sectionPos[0]<= transform_.pos.z && transform_.pos.z <= sectionPos[1])
-	{
-		//13
-		section_ = 1;
-	}
-	return section_;
-}
-
 void Player::SetEndPpos(VECTOR pos)
 {
 	endPos_ = pos;
 }
 
-VECTOR Player::GetCameraAngles(void)
-{
-	return camera_->GetDir();
-}
 
 Transform* Player::GetTransform(void)
 {
@@ -303,7 +284,7 @@ void Player::AnimationInit(void)
 void Player::ProcessMove()
 {
 	//移動量をゼロに
-	if (!isJump_)
+	if (!isNormalJump_)
 	{
 		movePow_ = VECTOR{ 0.0f,0.0f,0.0f };
 	}
@@ -340,7 +321,7 @@ void Player::ProcessMove()
 	//スティック入力があればプレイヤーを動かす
 	if (!AsoUtility::EqualsVZero(padDir))
 	{
-		if (!isJump_&&!isFall_)//ジャンプ状態じゃなくスティック入力があれば
+		if (!isNormalJump_&&!isFall_)//ジャンプ状態じゃなくスティック入力があれば
 		{	//アニメーションをRUNに
 			
 			animationController_->Play(static_cast<int>(ANIM_TYPE::RUN));
@@ -350,7 +331,7 @@ void Player::ProcessMove()
 	}
 	else
 	{
-		if (!isJump_ && !isFall_)
+		if (!isNormalJump_ && !isFall_)
 		{
 			animationController_->Play(static_cast<int>(ANIM_TYPE::IDLE));
 		}
@@ -370,45 +351,30 @@ void Player::ProcessJump()
 	auto& ins = InputManager::GetInstance();
 	bool isDown = ins.IsPadBtnNew(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DOWN);
 	//ジャンプボタンがおされた時に
-	if (isDown && !isJump_)
+	if (isDown && !isNormalJump_)
 	{
 		animationController_->Play(static_cast<int>(ANIM_TYPE::JUMP), true, 2.0f, 17.0f);
 		animationController_->SetEndLoop(12.0f, 17.0f, 3.0f);
-		isJump_ = true;
+		isNormalJump_ = true;
 	}
-	if (isSwingJump_)
-	{
-		stepSwingump_ += SceneManager::GetInstance().GetDeltaTime();
-		if (stepSwingump_ < TIME_JUMP_IN)
-		{
-			jumpPow_ = VScale(VECTOR{ 0.0f,1.0f,0.0f }, POW_JUMP);
-		}
-	}
-
-	if (isJump_)
+	if (isNormalJump_)
 	{
 		stepJump_ += SceneManager::GetInstance().GetDeltaTime();
 		if (stepJump_ < TIME_JUMP_IN)
 		{			
 			jumpPow_ = VScale(VECTOR{ 0.0f,1.0f,0.0f }, POW_JUMP);
 		}
-	}
+	}	
 	if (!isDown)
 	{
 		stepJump_ = TIME_JUMP_IN;
-	}
-
-	if (stepSwingump_ > TIME_JUMP_IN) 
-	{
-		stepSwingump_ = 0.0f;
-		isSwingJump_ = false;
 	}
 }
 
 void Player::CalcGravityPow()
 {
 	//重力方向
-	VECTOR dirGravity = gravityNorm_;
+	VECTOR dirGravity = -gravityNorm_;
 	//重力の強さ
 	float gravityPow = 30.0f;
 	//重力				方向×力
@@ -419,7 +385,7 @@ void Player::CalcGravityPow()
 	float dot = VDot(dirGravity, jumpPow_);
 	if (dot >= 0.0f)
 	{
-		//重力方向と反対方向でなければ，ジャンプ食を打ちける
+		//重力方向と反対方向でなければ，ジャンプ食を打ちけす
 		jumpPow_ = gravity;
 	}
 }
@@ -512,9 +478,9 @@ void Player::CollisionGravity(void)
 {
 	movedPos_ = VAdd(movedPos_, jumpPow_);
 
-	VECTOR dirGravity = VNorm(GRAVITY);
+	VECTOR dirGravity = -VNorm(GRAVITY);
 
-	VECTOR dirUpGravity = -VNorm(GRAVITY);
+	VECTOR dirUpGravity = VNorm(GRAVITY);
 
 	//足元　movePow
 	float CheckPow = 10.0f;
@@ -529,7 +495,6 @@ void Player::CollisionGravity(void)
 
 	for (auto c : colliders_)
 	{
-
 		//地面(ステージモデル)との衝突				　↓始点		↓終点
 		auto hit = MV1CollCheck_Line(c->modelId_, -1, gravHitUp, gravHitDown);
 		//落下時だけ足元の当たり判定
@@ -537,34 +502,32 @@ void Player::CollisionGravity(void)
 
 		if (hit.HitFlag > 0 && jumpDot_ > 0.9f)
 		{
-			//衝突している
+			//衝突していたらジャンプ終了
+
 			float dis = 4.0f;
 			_update = &Player::StandardUpdate;
-
-			isSwingFlag_ = false;
 			movedPos_ = VAdd(hit.HitPosition, VScale(dirUpGravity, dis));
-			testPos_ = VAdd(hit.HitPosition, VScale(dirUpGravity, dis));
-			//抵抗力の代わりに
 			jumpPow_ = AsoUtility::VECTOR_ZERO;
-
-			//ジャンプ終了
-			isJump_ = false;
+			isNormalJump_		 = false;
+			isSwingFlag_ = false;
 			isSwingJump_ = false;
-			stepJump_ = 0.0f;
-			isFall_ = false;
-			stepSwingump_ = 0.0f;
+			isFall_		 = false;
+			stepSwingJump_ = 0.0f;
+			stepJump_	= 0.0f;
 		}
-		else if(!isSwingFlag_&&!isJump_&&! isSwingJump_)
+		//ジャンプ状態、スイング状態のどちらでもなかったら落下状態にする
+		else if(!IsJump()&&!isSwingFlag_ )
 		{
-			if (!isFall_)
-			{
-				isFall_ = true;
-				animationController_->Play(static_cast<int>(ANIM_TYPE::JUMP),true, 19.0f);
-				animationController_->SetEndLoop(12.0f,18.0f , 3.0f);
-			}
+			isFall_ = true;
+			animationController_->Play(static_cast<int>(ANIM_TYPE::JUMP),true, 19.0f);
+			animationController_->SetEndLoop(12.0f,18.0f , 3.0f);
 		}
-
 	}
+}
+
+bool Player::IsJump(void)
+{
+	return (isNormalJump_ && isSwingJump_);
 }
 
 
@@ -573,9 +536,9 @@ void Player::Rotate(void)
 	pendulumRotY_ = Quaternion::Slerp(pendulumRotY_, goalQuaRot_, 0.2);
 }
 
-float Player::Magnitude(VECTOR pos) const
+const float Player::Magnitude(VECTOR vec) const
 {
-	return sqrtf(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z);
+	return sqrtf(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
 }
 
 float Player::Dot(const VECTOR& a, const VECTOR& b)

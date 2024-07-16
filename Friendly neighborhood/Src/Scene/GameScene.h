@@ -4,6 +4,7 @@ class SceneManager;
 class AnimationController;
 class Controller;
 class Stage;
+class Character;
 class SkyDome;
 class Player;
 class Grid;
@@ -39,7 +40,7 @@ private:
 	void MakeCharacter(void);
 
 	//探すキャラクターとプレイヤーの衝突判定
-	void IsHitCoinPlayer(void);
+	void IsHitCharcterPlayer(void);
 
 	std::unique_ptr<SwingPoint> swi_;
 

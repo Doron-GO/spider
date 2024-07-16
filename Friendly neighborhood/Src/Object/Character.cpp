@@ -41,8 +41,6 @@ void Character::Update(void)
 {
 	transform_.Update();
 	animationController_->Update();
-	//エフェクト
-	PlayEffectCoinSmoke();
 }
 
 void Character::Draw(void)

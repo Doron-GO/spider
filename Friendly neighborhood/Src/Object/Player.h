@@ -5,6 +5,7 @@
 #include"../Object/Stage.h"
 #include "../Object/Common/Transform.h"
 #include"SwingPoint.h"
+
 class AnimationController;
 class ResourceManager;
 class GravityManager;
@@ -32,14 +33,13 @@ public:
 	~Player(void);
 
 	void Init(void);
-	void Update(float delta,VECTOR pos, VECTOR gra, VECTOR end,VECTOR Billpos);
+	void Update(float delta,VECTOR pos, VECTOR gra, VECTOR end);
 	void SetFollowTarget(Camera* target);
 	void AddCollider(Collider* collider);
 	void Draw(void);
 	void SwingDraw(void);
-	int CheckSection(void);
 	void SetEndPpos(VECTOR pos);
-	VECTOR GetCameraAngles(void);
+
 	Transform* GetTransform(void);
 	bool IsAlive();
 
@@ -57,6 +57,9 @@ private:
 
 	//ジャンプ受付時間
 	static constexpr float TIME_JUMP_IN = 0.5f;
+
+	//スイングジャンプ時間
+	static constexpr float TIME_SWING_JUMP = 0.5f;
 	//スウィング中重力
 	static constexpr float SWING_GRAVITY = 3500.0f;
 
@@ -66,7 +69,7 @@ private:
 	int stepGrav;
 
 	//ジャンプ状態かどうかを判定
-	bool isJump_;
+	bool isNormalJump_;
 
 	//スウィング状態からジャンプする
 	bool isSwingJump_;
@@ -77,12 +80,14 @@ private:
 	//落下状態化を判定
 	bool isFall_;
 
-	//
+	//ジャンプ力加算用
 	float stepJump_;
 
-	float stepSwingump_;
+	//スイングジャンプ力加算用
+	float stepSwingJump_;
 
-	VECTOR movedPos_;	//移動後の座標
+	//移動後の座標
+	VECTOR movedPos_;	
 
 	//ジャンプ力
 	VECTOR jumpPow_;
@@ -95,22 +100,17 @@ private:
 
 	Camera* camera_;
 
-	float sectionPos[2];
+	//支点の座標
+	VECTOR endPos_;		
 
-	int section_;//
-	VECTOR testPos_;
-	VECTOR endPos_;		//支点の座標
+	//セット用支点の座標
+	VECTOR setEndPos_;	
 
-	VECTOR setEndPos_;	//セット用支点の座標
+	//支点からプレイヤーへのベクトル
+	VECTOR stringV_;		
 
-	VECTOR billPos_;	//ビルの座標
-
-	VECTOR stringV_;		//支点からプレイヤーへのベクトル
-
+	//錘から重力軸までのベクトル
 	VECTOR swingYnorm_;
-
-	//重力
-	VECTOR gravity_;
 
 	static constexpr VECTOR GRAVITY = { 0.0f,3500.0f,0.0f };
 
@@ -120,14 +120,12 @@ private:
 	//swing時の重力方向
 	VECTOR swingGravity_;
 
-	//ス印字の重力ベクトルを正規化したもの
+	//スイングの重力ベクトルを正規化したもの
 	VECTOR swingGravityNorm_;
 
 	//軸から錘の正規化済み垂直ベクトル
 	VECTOR yNorm_;
-
-
-
+	
 	//最終的に向きたい方向
 	Quaternion goalQuaRot_;
 
@@ -139,6 +137,15 @@ private:
 
 	//カプセルでの当たり判定
 	std::unique_ptr<Capsule>capsule_;
+
+	//プレイヤーのアニメーション制御
+	AnimationController* animationController_;
+
+	//プレイヤーのモデル制御
+	Transform transform_;
+
+	//３Dモデルの読み込み
+	ResourceManager& resourceManager_;
 
 	//重力の大きさ
 	float gMag_;
@@ -152,14 +159,6 @@ private:
 	//角度
 	float theta_;
 
-	//プレイヤーのアニメーション制御
-	AnimationController* animationController_;
-
-	//プレイヤーのモデル制御
-	Transform transform_;
-
-	//３Dモデルの読み込み
-	ResourceManager& resourceManager_;
 
 	//アニメーション読み込み
 	void AnimationInit(void);	
@@ -181,18 +180,25 @@ private:
 	//スイング状態にする関数
 	void SwingStart();
 
+	//スイングジャンプを行う関数
+	void ProcessSwingJump(void);
+
 	//振り子の計算を行う
 	void Swing(float delta);	
 
-
+	//スティックの入力があるときにプレイヤーを移動させる関数
 	void ProcessMove(void);
 
+	//ボタンの入力に応じてジャンプを開始する関数
 	void ProcessJump(void);
-
+	
+	//重力を加算する関数
 	void CalcGravityPow(void);
-
+	
+	//当たり判定をまとめた関数
 	void Collision(void);
 
+	//モデルとカプセルとの当たり判定
 	void CollisionCupsule(void);
 
 	//壁との当たり判定
@@ -201,13 +207,20 @@ private:
 	//地面との当たり判定
 	void CollisionGravity(void); 
 
+	//ジャンプ状態かどうか(スイングジャンプも含む)
+	bool IsJump(void);
+
 	//到達したい角度まで、回転させる	
 	void Rotate(void);
 
-	float Magnitude(VECTOR pos)const;
-	float Dot(const VECTOR& a, const VECTOR& b);
-	VECTOR Normalized(VECTOR& v);
+	//ベクトルの大きさを取得
+	const float Magnitude(VECTOR vec)const;
 
+	//内関
+	float Dot(const VECTOR& a, const VECTOR& b);
+
+	//正規化をする関数
+	VECTOR Normalized(VECTOR& v);
 
 };
 

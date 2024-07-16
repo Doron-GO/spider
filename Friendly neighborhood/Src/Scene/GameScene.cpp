@@ -75,23 +75,21 @@ void GameScene::Update(void)
 	{
 		lpSceneMng.ChangeScene(SceneManager::SCENE_ID::TITLE);
 	}
-	auto section= swi_->SetSwingPoint(player_->GetTransform()->pos,player_->CheckSection());
+	auto swingPos = swi_->SetSwingPoint(player_->GetTransform()->pos);
 	auto gravity= swi_->SetGravity(player_->GetTransform()->pos);
-	auto bill= swi_->GetBillPoint();
-	player_->Update(lpSceneMng.GetDeltaTime(), lpSceneMng.GetCamera()->GetDir(), gravity, section, bill);
+	player_->Update(lpSceneMng.GetDeltaTime(), lpSceneMng.GetCamera()->GetDir(), gravity, swingPos);
 	skyDome_->Update();
 	stage_->Update();
-	// コイン
+	// キャラクター
 	for (const auto c : character_)
 	{
 		c->Update();
 	}
-	IsHitCoinPlayer();
+	IsHitCharcterPlayer();
 }
 
 void GameScene::Draw(void)
 {
-	// コイン
 	for (const auto c : character_)
 	{
 		c->Draw();
@@ -128,6 +126,7 @@ void GameScene::Load(void)
 	lpSceneMng.GetCamera()->SetTransform(player_->GetTransform());
 	isLoaded_ = true;
 }
+
 void GameScene::MakeCharacter(void)
 {
 	Transform trans;
@@ -155,7 +154,7 @@ void GameScene::MakeCharacter(void)
 	character_.push_back(character);
 }
 
-void GameScene::IsHitCoinPlayer(void)
+void GameScene::IsHitCharcterPlayer(void)
 {
 
 	// コインとプレイヤーの衝突判定

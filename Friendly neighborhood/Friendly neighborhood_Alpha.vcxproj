@@ -177,6 +177,7 @@
     <ClInclude Include="Src\Object\Stage.h" />
     <ClInclude Include="Src\Object\StagePiece.h" />
     <ClInclude Include="Src\Object\SwingPoint.h" />
+    <ClInclude Include="Src\Scene\GameOverScene.h" />
     <ClInclude Include="Src\Scene\GameScene.h" />
     <ClInclude Include="Src\Scene\SceneBase.h" />
     <ClInclude Include="Src\Scene\TitleScene.h" />
@@ -209,6 +210,7 @@
     <ClCompile Include="Src\Object\Stage.cpp" />
     <ClCompile Include="Src\Object\StagePiece.cpp" />
     <ClCompile Include="Src\Object\SwingPoint.cpp" />
+    <ClCompile Include="Src\Scene\GameOverScene.cpp" />
     <ClCompile Include="Src\Scene\GameScene.cpp" />
     <ClCompile Include="Src\Scene\SceneBase.cpp" />
     <ClCompile Include="Src\Scene\TitleScene.cpp" />
